@@ -22,7 +22,7 @@ Do Step 1 first. Do not jump to YOLO.
 
 ---
 
-# STEP 1 — Image foundations
+# STEP 1 — Image foundations (Week 1)
 
 This is Module 1 and the start of Module 2. If this is weak, later CNN answers will sound empty.
 
@@ -386,12 +386,12 @@ An **edge** is a place where brightness jumps (the outline of an object).
 
 Together they give an edge map. Sobel is simple but a bit noisy.
 
-**Canny** is a full recipe, not one kernel:
+**Canny is an advanced edge detector.** It also finds edges, but it removes noise and keeps only the **most important, clean edges**.
 
-1. Blur a little (reduce noise)
-2. Compute gradients (like Sobel)
-3. Keep only the strongest pixel along the edge (non-max suppression)
-4. Use **two thresholds**: strong edges are kept, weak edges are kept only if they touch a strong one
+- Removes noise.
+- Finds edges.
+- Removes weak or false edges.
+- Keeps only strong, connected edges.
 
 Result: cleaner, thinner edges. Used in lane detection, document outlines, medical boundaries.
 
@@ -454,8 +454,8 @@ Thresholding converts a grayscale image into a black-and-white (binary) image by
 
 Process:
 
-- If pixel intensity > threshold → set to white (255).
-- If pixel intensity ≤ threshold → set to black (0).
+- If pixel intensity > threshold(T) → set to white (255).
+- If pixel intensity ≤ threshold(T) → set to black (0).
 
 example:
 
@@ -528,21 +528,49 @@ Thresholding simplifies an image by removing unnecessary gray levels, making it 
 
 ## 11. Morphological operations — edit shapes, not colors
 
-Work mainly on **binary** images. You take a small shape called a **structuring element** (square, ellipse, cross) and probe the image with it. Size of that element controls how strong the effect is. Bigger = stronger (and you can destroy thin objects if it is too big).
+The core idea of **Morphological Operations** is to **change the shape of objects** in an image. (An **object** is **anything you want the computer to detect or analyze**. Eg: In a document image, the **letters** are the objects.)
+
+They are mainly used on **binary (black-and-white) images**, where:
+
+- **White** = Object
+- **Black** = Background
+
+To modify the object's shape, morphological operations use a **structuring element (kernel)**, which is a small shape (such as a **3×3 square, circle, or cross**). This structuring element **slides over the entire image** and decides how each pixel should change based on its neighboring pixels. Depending on the operation, it can **expand (grow)** objects, **shrink** objects, **remove small noise**, or **fill small gaps and holes**. Therefore, morphological operations are mainly used to **clean up images and improve the shape of objects** before further processing.
+
+### Exam Tip
+
+> **Morphological operations are image processing techniques used to modify the shape of objects in an image. They use a small structuring element (kernel) that slides over the image to expand, shrink, or clean objects, and are mainly applied to binary images.**
 
 Think of a marker and an eraser on a drawing:
 
-| Operation | Recipe | Effect | Use |
-|-----------|--------|--------|-----|
-| **Dilation** | expand white | thicker strokes, gaps close | connect broken letters |
-| **Erosion** | shrink white | thinner, small dots die | remove specks |
-| **Opening** | **erode then dilate** | specks gone, main shape kept | noisy scan |
-| **Closing** | **dilate then erode** | holes inside objects fill | broken characters |
+| Operation    | Think of it as                               | What it does                                                                    | Example Use                                                   |
+| ------------ | -------------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **Dilation** | **Grow the object**                          | Makes the white object **bigger**. Closes small gaps and connects broken parts. | Connect broken letters.                                       |
+| **Erosion**  | **Shrink the object**                        | Makes the white object **smaller**. Removes tiny white dots (noise).            | Thinning lines or removing stray dots.                        |
+| **Opening**  | **Clean the object** *(Erosion → Dilation)*  | First removes small noise, then restores the main object.                       | Clean noisy scanned images.                                   |
+| **Closing**  | **Repair the object** *(Dilation → Erosion)* | First fills small holes or gaps, then restores the object's original size.      | Fill holes and reconnect broken characters(broken characters) |
+
+⭐️⭐️⭐️
+
+- Erosion followed by dilation 
+- Dilation followed by erosiom.
+
+⭐️⭐️⭐️
 
 Opening vs closing is a favourite compare question. Remember the **order**.
 
 **Write this in the paper:**  
 *Morphological operations modify object shape using a structuring element. Dilation expands foreground, erosion shrinks it. Opening = erosion then dilation (remove noise). Closing = dilation then erosion (fill holes).*
+
+Applications
+
+• Document processing: Remove noise, enhance text readability.
+
+• Medical imaging: Highlight structures like cells or tissues.
+
+• Industrial inspection: Detect defects in materials.
+
+• Object detection: Clean up shapes before contour analysis.
 
 ---
 
@@ -563,13 +591,225 @@ From a contour you can compute:
 
 ---
 
-# STEP 2 — Features, motion, face, first CNN
+# STEP 2 — Features, motion, face, first CNN (Week 2)
 
 Rest of Module 2, Module 5 (face), start of Module 3 (CNN words).
 
+[STUDY-ORDER.md](./STUDY-ORDER.md) says: first finish the leftover pages of Week 1 KeyConcepts, **in that PDF’s order**, then do Week 2. Those leftover PDF topics start below.
+
 ---
 
-## 13. Four core challenges of Computer Vision
+## 13. Object Tracking
+
+A photo is one moment. A **video** is many photos in a row. **Object tracking** means: keep finding the **same** object in every next frame — a ball, a car, a person.
+
+Why we need it: CCTV, self-driving cars, sports replay. Detection says “there is a car in this frame”. Tracking says “this is the **same** car as 0.1 seconds ago”.
+
+Three approaches (from the PDF):
+
+1. **Detection-based tracking** — run a detector (YOLO, Faster R-CNN) on **every** frame, then **link** boxes that belong to the same object. Accurate when the detector is good. Heavy.
+2. **Tracking-by-motion** — do not re-detect from scratch. Follow pixels or a box using **optical flow** or a correlation filter. Faster. Can lose the object if it hides or jumps.
+3. **Hybrid** — detect sometimes, predict in between. **SORT** and **DeepSORT** do this (detect + predict the next position).
+
+Challenges: occlusion (object hidden), scale change (near/far), many similar objects, messy background.
+
+Applications: surveillance, autonomous driving, sports analytics.
+
+**Write this in the paper:**  
+*Object tracking continuously locates the same object across video frames. Detection-based tracking detects in each frame and links boxes. Tracking-by-motion follows the object with optical flow. Hybrid methods such as SORT/DeepSORT combine detection and prediction. Challenges include occlusion, scale change and clutter.*
+
+---
+
+## 14. Edge detection in the KeyConcepts PDF (Sobel, Canny, Laplacian)
+
+Def: This sudden change in pixel intensity is called an **edge**. or An edge is the boundary where one object ends and another begins.
+
+You already learned Sobel and Canny in **section 7**. The same PDF adds one more filter and one warning.
+
+**Laplacian** looks at how fast intensity is **changing in all directions at once** (second derivative). It highlights edges as thin lines, but it is **noisy**, so we usually blur first (Laplacian of Gaussian).
+
+**Important exam note from the PDF:** edges are distinctive, but they are **not unique landmarks**. If you slide along an edge, every point looks similar, so matching/tracking prefers **corners**, not edges.
+
+Applications: object segmentation, lane detection, medical imaging.
+
+**Write this in the paper:**  
+*Edge detection finds sharp intensity changes. Methods include Sobel, Canny and Laplacian. Edges are useful outlines but are not unique landmarks, so corners are better for matching.*
+
+---
+
+## 15. Corner Detection (Harris, FAST, Shi-Tomasi)
+
+A **corner** in an image is a point where the image changes direction sharply or A corner is a pixel where **two or more edges meet**.
+
+![Corner Detection](img1.png)
+
+**Purpose (write this):** Find points where edges meet, i.e., regions with intensity variation in multiple directions.
+
+**Methods**
+
+| Method | Simple idea | Exam point |
+|--------|-------------|------------|
+| **Harris** | Give each pixel a “how much is this a corner?” score using how fast brightness changes | Easy. Good on buildings and chessboards. If you zoom or rotate a lot, it can fail |
+| **FAST** | Look at a ring of pixels around a point. If many are much brighter or much darker, call it a corner | Very fast. Used inside ORB |
+| **Shi-Tomasi** | Same family as Harris, with a slightly better score | Used when we pick “good points to track” (KLT) |
+
+**Why useful:** corners can be found again in another photo. Flat patches and edges cannot.
+
+**Uses:** match two photos, track a point in video, stitch a panorama.
+
+**Write this in the paper:**  
+*Corner detection finds points where edges meet — places where intensity changes in more than one direction. Corners are repeatable and unique, unlike edges. Common methods are Harris, FAST and Shi-Tomasi. Used in matching, tracking and panorama stitching.*
+
+---
+
+## 16. SIFT (Scale-Invariant Feature Transform)
+
+**Purpose (write this):** Detect and describe key points that still work when the object is bigger/smaller (**scale**) or turned (**rotation**).
+
+**In simple words:** you take a photo of a book. Later you take another photo closer, or with the book rotated. SIFT still finds the same spots on the cover and can match them.
+
+**Pipeline** (same 4 steps as the PDF — learn this order):
+
+1. **Gaussian scale space** — make many copies of the image, each a bit more blurry. Blur = looking at the object at a different size.
+2. **Difference of Gaussians (DoG)** — subtract one blurry copy from the next. Points that “pop” here are the key points.
+3. **Assign orientation** — look at the edge direction around the point. If the photo is rotated, this direction tells us how it was turned.
+4. **128-D descriptor** — write 128 numbers that describe the small patch around the point. Two points match if these number lists are close.
+
+**Uses:** find the same object, stitch photos, 3D rebuild.  
+**Plus:** works with zoom and rotation.  
+**Minus:** slow / heavy on the computer.
+
+**Write this in the paper:**  
+*SIFT detects and describes keypoints robust to scale and rotation. Pipeline: Gaussian scale space → DoG extrema → orientation → 128-dimensional descriptor. Strong but computationally heavy. Used in object recognition, stitching and 3D reconstruction.*
+
+---
+
+## 17. SURF (Speeded-Up Robust Features)
+
+**Purpose (write this):** A faster SIFT. Still finds local features that survive scale and rotation, but it runs quicker.
+
+**In simple words:** same job as SIFT (find special points + describe them + match them). SURF was made in 2006 to do that job **faster**.
+
+Three parts (from the PDF):
+
+1. **Feature detection** — find interest points (corners, blobs, junctions). It uses a **Hessian** score. You do not need the full maths. Say: *a number that tells how much this point stands out.*
+2. **Feature description** — write the small area around the point as **64 or 128 numbers**.
+3. **Matching** — compare those number lists between two images. Close lists = the same point.
+
+**Compare for the paper:** SIFT = stronger but slower. SURF = faster SIFT-like. ORB = even faster, weaker if the object changes size a lot.
+
+**Write this in the paper:**  
+*SURF is a faster alternative to SIFT. It detects interest points using a Hessian-based measure, describes each point with a 64 or 128-D vector, and matches those descriptors across images. It is scale and rotation invariant with lower computational cost than SIFT.*
+
+---
+
+## 18. HOG (Histogram of Oriented Gradients)
+
+**Purpose (write this):** Find which way the edges are pointing (horizontal, vertical, or diagonal) in each small section of the image.
+
+**In simple words:** SIFT picks a few special dots. HOG looks at a **whole window** (a walking person, a face) and asks: *in this box, which way do the edges point?* A standing person has more up-down edges (legs, body). That pattern is the HOG.
+
+**Pipeline** (PDF order):
+
+1. **Compute gradients** — find how brightness changes, and in which direction (the edge direction).
+2. **Divide into cells** — small squares, e.g. 8×8 pixels.
+3. **Orientation histogram** — in each cell, count how many edges point left, up, right, etc.
+4. **Normalise over blocks** — join a few cells and scale the numbers so a bright photo and a dark photo still look similar. This helps with lighting.
+
+**Uses:** pedestrian detection, object classification.  
+**Plus:** light, easy to explain.  
+**Minus:** if the person is much bigger or smaller than expected, it can fail (**scale**).
+
+**Write this in the paper:**  
+*HOG captures edge orientation distributions in local cells, then normalises over blocks. Used for pedestrian detection and classification. Lightweight and interpretable, but sensitive to scale changes.*
+
+---
+
+## 19. Stereo Vision
+
+**Purpose (write this):** Use two images from slightly different viewpoints to estimate **depth** (how far things are).
+
+**In simple words:** you have two eyes. Each eye sees a slightly different picture. Your brain uses that difference to feel distance. Stereo vision does the same with two cameras.
+
+1. Take a **left** photo and a **right** photo.
+2. Find the **same point** in both (a corner of a car, a tree).
+3. See how much it **shifted**. Big shift = **near**. Small shift = **far**.
+
+**Uses:** 3D models, self-driving, robots.  
+**Problem:** a blank wall has no unique points, so matching fails (**textureless** regions).
+
+**Write this in the paper:**  
+*Stereo vision estimates depth by matching corresponding points between left and right images taken from slightly different viewpoints. Used in 3D reconstruction, autonomous driving and robotics. Challenge: unreliable matches in textureless regions.*
+
+---
+
+## 20. Epipolar Geometry
+
+**Purpose (write this):** The maths that explains how two camera views of the same scene are related.
+
+**Two names from the PDF:**
+
+- **Essential matrix** — you **know** the camera settings (calibrated).
+- **Fundamental matrix** — you **do not** know the camera settings (uncalibrated).
+
+**Uses:** stereo matching, building 3D from many photos (structure-from-motion), camera calibration.
+
+**Write this in the paper:**  
+*Epipolar geometry describes the relationship between two camera views. A point in one image must correspond to a point on the epipolar line in the other image. Essential matrix is for calibrated cameras; fundamental matrix is for uncalibrated cameras.*
+
+---
+
+## 20b. Optical Flow (Lucas–Kanade and Horn–Schunck)
+
+**Purpose (write this):** Estimate the **apparent motion** of pixels from one video frame to the next.
+
+**In simple words:** frame 1 has a ball. Frame 2 has the ball a bit to the right. Optical flow draws small arrows: “this pixel moved here.”
+
+**How it works:** it assumes a pixel keeps the **same brightness** while it moves. Then it computes how far it moved (a displacement vector). If the light suddenly changes, this assumption breaks.
+
+**Two methods in the PDF:**
+
+| Method | Simple idea |
+|--------|-------------|
+| **Lucas–Kanade** | Look only in a **small window** around the point. Fast. Used in KLT tracking. |
+| **Horn–Schunck** | Look at the **whole image** and assume nearby pixels move in a **smooth** way (not random jumps). |
+
+**Uses:** gestures, motion detection, steady video (stabilisation).  
+**Limits:** lighting change and hiding (occlusion).
+
+Week 2 also says **sparse** (only some points) vs **dense** (every pixel). That is section 25.
+
+**Write this in the paper:**  
+*Optical flow estimates apparent motion of pixels between consecutive frames. It assumes brightness constancy. Lucas–Kanade uses a local neighbourhood. Horn–Schunck uses a global smoothness constraint. Limitations: lighting changes and occlusions.*
+
+---
+
+## 20c. Kalman Filters
+
+**Purpose (write this):** A recursive method that **predicts** and then **corrects** the position of a moving object over time.
+
+**In simple words:** Imagine a car moving on the road. The computer detects the car in every video frame, but the detected box may **shake or jump slightly** because of small errors. The car is actually moving smoothly. The Kalman Filter predicts where the car should be next and then corrects its prediction using the new detection. It repeats this for every frame.
+
+Kalman does two steps, again and again:
+
+1. **Prediction** — from how it was moving, guess where it should be next (“a bit further on the road”).
+2. **Update (correct)** — look at the new measurement (the box) and mix it with the guess. Too jumpy measurement? Trust the guess more. Clean measurement? Trust the box more.
+
+**Plus:** works with noisy sensors, makes the path smooth.  
+**Uses:** cars, drones, people, in real time.
+
+**Note:** best when motion is **straight-ish (linear)** and noise is **Gaussian** (normal bell-curve noise). If motion is curved / non-linear, use **Extended Kalman Filter**.
+
+**Write this in the paper:**  
+*A Kalman filter is a recursive algorithm that predicts the next state of a moving object and then corrects it using observed measurements. It handles noisy data and smooths trajectories. Best for linear motion with Gaussian noise; extended Kalman filters handle non-linear cases.*
+
+---
+
+Then continue Week 2 and the syllabus order: challenges → features → Harris/SIFT/ORB/HOG recap → matching → flow in video labs → ML → face → CNN.
+
+---
+
+## 21. Four core challenges of Computer Vision
 
 The same real object can look totally different in a photo. That is why CV is hard. Memorise **four words + one example each**.
 
@@ -587,7 +827,7 @@ Hand-crafted features (SIFT) and later CNNs are both attempts to survive these c
 
 ---
 
-## 14. What is a “feature”?
+## 22. What is a “feature”?
 
 You cannot compare two photos pixel by pixel. If the camera moved 2 cm, almost every pixel changed, even if it is the same room.
 
@@ -603,11 +843,11 @@ A good feature is:
 - **Compact** — a short vector, not the whole image
 
 **Write this in the paper:**  
-*A feature is a distinctive, repeatable pattern. A keypoint marks its location. A descriptor encodes the local neighborhood as a vector so two images can be matched without comparing every pixel.*
+*A feature is a distinctive, repeatable pattern. A keypoint marks its location. A descriptor encodes the local neighborhood as a vector so two images can be matched without comparing every pixel. (write about good feature written in above points).*
 
 ---
 
-## 15. Harris, SIFT, ORB, HOG
+## 23. Harris, SIFT, ORB, HOG
 
 ### Harris corners
 
@@ -650,14 +890,23 @@ Used for **pedestrians and faces**. Interpretable and fairly light. Sensitive to
 
 ---
 
-## 16. Matching, homography, RANSAC
+# 24. Matching, Homography, RANSAC
 
-Once you have descriptors in image A and image B:
+### Step 1: Matching
 
-1. For each descriptor in A, find the nearest descriptor in B (FLANN is a fast approximate search).
-2. **Lowe’s ratio test**: keep a match only if the best neighbor is *clearly* better than the second best. This drops ambiguous matches.
-3. From good matches, estimate a **homography** — a 3×3 matrix that maps one plane onto the other (logo onto a billboard, left photo onto right photo for a panorama).
-4. Many matches are still wrong. **RANSAC** repeatedly picks a small random subset, fits a homography, and keeps the fit that agrees with the most points. Outliers are ignored.
+Compare the descriptors of **Image A** and **Image B** to find the same feature points.
+
+### Step 2: Lowe's Ratio Test
+
+Sometimes two matches look similar. Keep a match **only if the best match is much better than the second-best match**. This removes confusing matches.
+
+### Step 3: Homography
+
+A **homography** is a **3×3 matrix** that tells how to **align or transform one image onto another**. It is used in panorama stitching and logo detection.
+
+### Step 4: RANSAC
+
+Some matches are still wrong. **RANSAC** repeatedly tests different groups of matches and **keeps the transformation that fits the most correct matches**, while ignoring wrong ones (outliers).
 
 That is also how a **logo detector** draws a box in a scene.
 
@@ -666,7 +915,7 @@ That is also how a **logo detector** draws a box in a scene.
 
 ---
 
-## 17. Optical flow and tracking
+## 25. Optical flow and tracking
 
 **Optical flow** = apparent motion of pixels from one video frame to the next.
 
@@ -679,427 +928,609 @@ Two flavours:
 
 **Object tracking** means follow a target across frames. You can detect every frame (YOLO) and link boxes, or track by motion (optical flow), or both (DeepSORT). Hard cases: occlusion, fast jumps, scale change, many similar objects.
 
-**Write this in the paper:**  
-*Optical flow estimates pixel motion between consecutive frames under brightness constancy. Sparse flow tracks selected keypoints (Lucas–Kanade / KLT). Dense flow computes motion at every pixel. It is sensitive to lighting changes, large displacements and occlusion.*
+Week 2 adds two practical flavours:
 
-Skip stereo, epipolar geometry, Kalman filter for this mid-term unless they appear in a stray question. They are not in the module list.
+- **Sparse flow:** track only some good points, usually corners. Cheap. **KLT** uses Lucas–Kanade.
+- **Dense flow:** a motion vector at **every** pixel (Farneback). Heavier. Good for visualising “what moved”.
+
+**Write this in the paper:**  
+*Optical flow estimates pixel motion between consecutive frames under brightness constancy. Lucas–Kanade is local; Horn–Schunck is global and smooth. Sparse flow tracks selected keypoints (KLT). Dense flow computes motion at every pixel. It is sensitive to lighting changes, large displacements and occlusion.*
 
 ---
 
-## 18. Classical ML on images (kNN, SVM, Bag of Visual Words)
+## 26. Classical ML on images (kNN, SVM, Bag of Visual Words)
 
-Before CNNs, we extracted features by hand, then gave a vector to a classifier.
+Before CNNs, computer unable to extract the feature so we extracted features by hand, then gave a vector to a classifier.
 
 **kNN:** look at the *k* nearest training examples; majority label wins. Simple, no real “training”, slow on big data.
 
-**SVM:** find a **hyperplane** (a dividing line in high dimension) with the **largest margin** between classes. Strong when features are good.
+**SVM:** SVM (Support Vector Machine) is a classification algorithm that finds the best decision boundary (hyperplane) to separate different classes. It chooses the boundary with the largest margin because a larger margin usually gives better classification. SVM performs well when the input features are good.
 
 **Bag of Visual Words (BoVW):** like a word-count for images.
 
 1. Extract local descriptors (SIFT/ORB) from many images
 2. Cluster them (k-means) → each cluster center is a **visual word**
-3. For a new image, assign each descriptor to the nearest word and build a **histogram**
-4. That fixed-length histogram goes into SVM/kNN
-
-Useful background. For this paper, one clean definition of each is enough.
+3. For a new image, the computer checks **which visual words are present** and **how many times each one appears**.
+4. The histogram is then given to a classifier like **SVM** or **kNN**, which predicts the image's class (e.g., **cat, dog, car**)
 
 **Write this in the paper:**  
 *kNN classifies by majority vote of nearest neighbours. SVM finds a maximum-margin hyperplane. Bag of Visual Words clusters local descriptors into a vocabulary and represents each image as a histogram of those visual words.*
 
+### Supervised vs unsupervised (Week 2 Pre-CNN notes)
+
+**Supervised learning** = learn from examples that already have **answers (labels)**. Input + correct output. Later you predict the output for a new input.
+
+- Classification: spam / not spam, digit 0–9  
+- Regression: predict a number (house price)
+
+**Unsupervised learning** = only inputs, **no labels**. The algorithm finds groups or structure by itself.
+
+- Clustering (k-means)  
+- Dimensionality reduction (PCA)  
+- Association rules
+
+Fruit basket example: supervised = you tell it “this is an apple”. Unsupervised = it groups red-round things together without the word “apple”.
+
+kNN and SVM are supervised. k-means inside BoVW is unsupervised.
+
+**Write this in the paper:**  
+*Supervised learning trains on labelled data to predict labels or numbers. Unsupervised learning finds hidden structure in unlabelled data, such as clusters.*
+
+### Artificial neuron and ANN (Week 2)
+
+An **artificial neuron** is one small calculator, inspired by a brain cell:
+
+1. Take inputs \(x_1, x_2, \ldots\)
+2. Multiply by **weights** \(w_i\) (importance)
+3. Add a **bias** \(b\)
+4. Pass the sum through an **activation** (ReLU, sigmoid, tanh) so the neuron can say “fire / don’t fire”
+5. Send the output to the next layer
+
+\[
+z = \sum_i w_i x_i + b, \quad output = f(z)
+\]
+
+A **neural network** stacks neurons into **input → hidden → output** layers.
+
+- **Forward pass:** data flows forward, you get a prediction  
+- **Loss:** how wrong the prediction is (cross-entropy for classes, MSE for numbers)  
+- **Backpropagation:** send the error backward and update weights
+
+Fully connected nets treat every pixel independently and need too many weights. That is the **bridge to CNNs**: convolution keeps local structure.
+
+**Write this in the paper:**  
+*An artificial neuron computes a weighted sum of inputs plus bias, then applies an activation. An ANN stacks these units. Forward pass predicts; backpropagation updates weights. CNNs replace huge fully connected layers on images with shared local filters.*
+
 ---
 
-## 19. Face detector (Module 5) — Haar vs HOG
+## 27. Face detector (Module 5) — Haar vs HOG
 
-**Face detection** = “is there a face, and where is the box?”  
-It is **not** face *recognition* (who is this person). Detection comes first.
+### First, the basic idea
 
-**Haar cascades**
+**Face detection** = finding *where* a face is in an image (drawing a box around it).  
+It does **not** tell you *whose* face it is. That’s face recognition, which is a different step.
 
-- Haar features are simple rectangular patterns (bright vs dark strips), like cheap edge/face templates.
-- **AdaBoost** picks the useful ones and stacks them as a **cascade**: easy “not a face” windows are rejected early, so it is fast.
-- Good for **frontal** faces in decent light. Weak on pose, occlusion, hard lighting.
+Detection always comes first, then recognition.
 
-**HOG for faces / pedestrians**
+---
 
-- Uses gradient histograms (shape of the head/shoulders).
-- More robust to illumination than Haar.
-- Heavier / slower.
+### Haar Cascade
 
-This is the syllabus “build a face detector” lab. For theory, compare Haar vs HOG: **speed vs robustness**.
+**What it looks at:** simple patterns of light and dark areas.  
+Example: the eye region is usually darker than the cheeks, and the nose bridge is brighter than the eyes. Haar features check for these light/dark patterns.
+
+**How it works:**
+
+- The image is scanned in small windows.
+- Each window goes through a series of quick checks (the “cascade”).
+- If a window fails an early check, it’s thrown out immediately as “not a face.”
+- Only windows that pass all checks are called faces.
+- **AdaBoost** is the method that picks which checks are most useful.
+
+**Why it’s fast:** most of the image is clearly not a face, so it gets rejected in the first few cheap steps.
+
+**Good at:** faces looking straight at the camera, in normal lighting.  
+**Bad at:** tilted or side faces, partly covered faces (mask, hand), strange lighting.
+
+---
+
+### HOG (Histogram of Oriented Gradients)
+
+**What it looks at:** the direction of edges (gradients) in the image, so it captures the **shape/outline**, like the head and shoulders.
+
+**Why it’s better:** it doesn’t depend much on brightness, so it handles different lighting better than Haar.
+
+**Downside:** slower and needs more computing power.
+
+---
+
+### Quick comparison
+
+|          | Haar                | HOG                     |
+| -------- | ------------------- | ----------------------- |
+| Looks at | Light/dark patterns | Edge directions (shape) |
+| Speed    | Fast                | Slower                  |
+| Lighting | Weak                | Better                  |
+| Best for | Front-facing faces  | Faces and pedestrians   |
 
 **Write this in the paper:**  
 *Haar-cascade detection uses rectangular Haar features selected by AdaBoost and a cascade classifier. It is fast for frontal faces but sensitive to pose and lighting. HOG captures gradient orientation histograms, so it is more robust to illumination but computationally heavier.*
 
 ---
 
-## 20. Why CNN? Stride, padding, pooling, flatten
+## 28. Why CNN? Stride, padding, pooling, flatten
 
-A normal neural net (fully connected) treats every pixel as a separate input. For a 200×200 color image that is 120,000 numbers going into huge weight matrices. It also **throws away** the fact that nearby pixels belong together.
+### Why CNN? (the problem it solves)
 
-A **CNN** reuses a small kernel across the image (weight sharing) and keeps spatial layout.
+A normal neural network (fully connected) has two problems with images:
 
-### Words you must be able to define
+1. **Too many numbers.** A 200×200 color image = 120,000 inputs, which means huge weight matrices.
+2. **Forgets layout.** It treats every pixel as separate, ignoring that nearby pixels belong together.
 
-**Stride**  
-How many pixels the kernel jumps. Stride 1 = dense. Stride 2 = skip, output is about half as wide/tall.
-
-**Padding**  
-Extra border (usually zeros) around the image so the kernel can sit on edge pixels. Without padding the image **shrinks** every convolution and edges are under-used. “Same” padding can keep width/height unchanged.
-
-**Pooling**  
-Summarise a small window of the feature map:
-
-- **Max pool** = keep the largest value (strongest detection)
-- **Average pool** = keep the mean
-
-Pooling **reduces dimensions**, makes the net a bit robust to small shifts, and cuts compute.
-
-**Flatten**  
-After conv/pool you still have a 3D block (height × width × channels). Fully connected layers want a **1D vector**. Flatten is just reshape. It is the bridge from “spatial features” to “final class scores”.
-
-**ReLU**  
-Activation: negative → 0, positive stays. Makes the net non-linear (without it, stacked layers collapse to one linear map). Faster than sigmoid; helps vanishing gradients.
-
-Typical flow:
-
-```
-Input → Conv → ReLU → Pool → Conv → ReLU → Pool → Flatten → Fully connected → class scores
-```
-
-Early conv layers learn edges and blobs. Deeper layers learn object parts and whole objects.
-
-**Write this in the paper:**  
-*CNNs use convolution so filters detect local patterns with few parameters. Stride is the kernel step size. Padding preserves border information and controls output size. Pooling downsamples feature maps (max or average). Flatten converts maps to a vector for the classifier.*
+**CNN fix:** it uses a small filter (kernel) that slides across the whole image and **reuses the same weights everywhere**. This is called **weight sharing**. It means fewer parameters and the image layout is kept.
 
 ---
 
-# STEP 3 — Deep CV (architectures, detect, segment)
+### Key terms (easy definitions)
+
+| Term                | Simple meaning                                                                                                                                                                                                             |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Kernel / Filter** | A small grid of numbers that slides over the image to detect one pattern (edge, texture, etc.)                                                                                                                             |
+| **Feature map**     | The output of one filter sliding over the image. It shows *where* that pattern appears and how strongly. One filter = one feature map.                                                                                     |
+| **Stride**          | How many pixels the filter jumps each step. Stride 1 = moves one pixel at a time. Stride 2 = skips, so the output is about half the size.                                                                                  |
+| **Padding**         | Extra border (usually zeros) added around the image. Without it, the image shrinks after every convolution and edge pixels get used less. “Same” padding keeps the size unchanged.                                         |
+| **Pooling**         | Shrinks a feature map by summarizing small windows. **Max pool** keeps the largest value (strongest detection). **Average pool** keeps the mean. Benefits: smaller size, less computation, tolerates small shifts.         |
+| **Flatten**         | Reshapes the 3D block (height × width × channels) into one long 1D list, because fully connected layers need a 1D input. It’s only a reshape, no learning.                                                                 |
+| **ReLU**            | Activation function: negative values become 0, positive values stay. It adds **non-linearity** (without it, many layers would act like just one layer). It is also faster than sigmoid and helps with vanishing gradients. |
+
+---
+
+### Typical CNN flow
+
+**Input → Conv → ReLU → Pool → Conv → ReLU → Pool → Flatten → Fully Connected → Class scores**
+
+- **Early layers** learn simple things: edges, blobs.
+- **Deeper layers** learn bigger things: object parts, then whole objects.
+
+**Simple way to remember:** *Conv extracts, Dense decides.*
+
+---
+
+### Fully connected vs Convolutional
+
+|             | Fully connected                         | Convolutional                   |
+| ----------- | --------------------------------------- | ------------------------------- |
+| Connections | Every neuron connects to every input    | Only to a small local area      |
+| Input       | Flattened, so layout is lost            | Keeps height × width × channels |
+| Job         | Combine features for the final decision | Extract edges, textures, shapes |
+| Parameters  | Very many                               | Few (filter is shared)          |
+| Bonus       | None                                    | Finds a pattern at any position |
+
+**Write this in the paper:**  
+*CNNs use convolution so filters detect local patterns with few parameters. A feature map is the response of one filter across the image. Stride is the kernel step size. Padding preserves border information and controls output size. Pooling downsamples feature maps (max or average). Flatten converts maps to a vector for the classifier. Fully connected layers learn global combinations but ignore spatial layout; convolutional layers preserve space and share weights.*
+
+---
+
+# STEP 3 — Deep CV tasks (Week 3)
 
 Module 3 + Module 4. Highest exam weight.
 
+### 3A — Architectures + transfer learning (must)
+
 ---
 
-## 21. The architecture lineage (very likely long answer)
+## 29. The architecture lineage (very likely long answer)
 
-Each famous CNN was invented to **fix a problem** the previous one had. Tell it as a story.
+### The big picture
 
-### LeNet (1998) — Yann LeCun
+Each architecture was built to **fix a problem** from the one before it. If you remember the problem, you remember the model.
 
-Small network: conv → pool → fully connected. Trained on **MNIST** handwritten digits.
+**Story in one line:** LeNet proved CNNs work → AlexNet made them big and fast → VGG made them deep and simple → ResNet made very deep nets trainable → EfficientNet made them efficient.
 
-**Problem it solved:** proved CNNs work better than old ML on images. Used in banks for reading cheques. Proof of concept.
+---
 
-### AlexNet (2012)
+### 1. LeNet (1998), Yann LeCun
 
-Won **ImageNet** by a huge margin. 5 conv + 3 FC. Trained with **GPUs**.
+- **What it is:** a very small CNN: conv → pool → fully connected.
+- **Trained on:** MNIST (handwritten digits).
+- **Used for:** reading numbers on bank cheques.
+- **Problem it solved:** showed that CNNs work better than older methods on images. It was a **proof of concept**.
 
-Three ideas that stuck:
+---
 
-- **ReLU** instead of sigmoid/tanh → faster training, less vanishing gradient
-- **Dropout** → randomly turn off neurons while training so the net cannot memorise
-- **GPU** → finally possible to train this size
+### 2. AlexNet (2012)
 
-**Problem it solved:** “deep vision doesn’t scale.” After AlexNet, everyone used deep CNNs. Accuracy jumped (roughly ~70% → ~85%+ on that challenge).
+- **What it is:** 5 conv layers + 3 fully connected layers, trained on GPUs.
+- **Result:** won the ImageNet competition by a huge margin. After this, everyone started using deep CNNs.
+- **Three ideas that stayed:**
+  - **ReLU** (instead of sigmoid/tanh): training is faster and vanishing gradient is reduced.
+  - **Dropout:** randomly switch off some neurons during training so the network can’t just memorise the data.
+  - **GPU:** made it possible to train such a big network.
+- **Problem it solved:** showed that deep networks can work at large scale.
 
-### VGG (2014)
+---
 
-Very deep (16 or 19 layers) but **simple**: stack many **3×3** filters instead of one large filter.
+### 3. VGG (2014)
 
-Why small filters? Two 3×3 layers have a similar view as one 5×5, but more non-linearities and fewer parameters. Showed **depth + simple design** is a winning recipe. Became the default backbone in papers.
+- **What it is:** very deep (16 or 19 layers) but a simple design. It just stacks many small **3×3 filters**.
+- **Why small filters?** Two 3×3 layers cover about the same area as one 5×5 filter, but with **fewer parameters** and **more non-linearity** (more ReLUs).
+- **Problem it solved:** how to go deeper without a messy design.
+- **Limitation:** still very heavy (a huge number of parameters).
 
-**Problem it solved:** how to go deeper without a messy design. Limit: still very heavy (many parameters).
+---
 
-### ResNet (2015)
+### 4. ResNet (2015)
 
-If you keep stacking layers, training **dies**: gradients vanish, accuracy can even get *worse*.
+- **The problem:** if you keep adding layers, training breaks. Gradients vanish and accuracy can actually get *worse*.
+- **The fix: skip (residual) connections.** The input is copied forward and added to the layer’s output: **output = F(x) + x** Here, F(x) is what the layer learns (the “change” to make), and x is the original input passed along.
+- **Why it works:** gradients can flow easily through the skip path, so very deep networks (50, 101, 152 layers) can be trained.
+- **Used for:** transfer learning and medical imaging (very popular).
+- **Problem it solved:** vanishing gradients and the drop in accuracy in very deep networks.
 
-ResNet adds **skip / residual connections**. The layer learns a **residual** (the difference to add), and the original signal is copied forward:
+---
 
-```
-output = F(x) + x
-```
+### 5. EfficientNet (2019)
 
-Gradients can flow along the skip path. Now 50, 101, even **152** layers train. Became the default for transfer learning and medical imaging.
+- **The problem:** earlier models improved by only going deeper, or only wider, or only using bigger images. That wastes computation.
+- **The fix: compound scaling.** Increase depth, width and image resolution **together**, using one scaling factor.
+- **Result:** high accuracy with fewer parameters. Works well on phones and small devices.
+- **Problem it solved:** unbalanced and inefficient scaling.
 
-**Problem it solved: vanishing gradients / degradation in very deep nets.**
-
-### EfficientNet (2019)
-
-People used to make a net only **deeper**, or only **wider**, or only higher **resolution**. That wastes compute.
-
-EfficientNet uses **compound scaling**: scale depth, width and resolution together with one coefficient. High accuracy with fewer parameters. Good on **phones**.
-
-**Problem it solved: unbalanced, inefficient scaling.**
+---
 
 ### Transfer learning (Module 4)
 
-ImageNet already taught a ResNet to see edges, textures, objects. For your small hospital dataset you **reuse** those weights:
+**Idea:** don’t train from zero. Reuse a model that is already trained on a huge dataset (like ImageNet).
 
-- freeze early layers (generic features)
-- train / replace the last layers on your data
+A model like ResNet has already learned to see edges, textures and shapes. For your small dataset (for example, hospital images):
 
-You need less data and less time than training from scratch. That is “using pre-trained models”.
+1. **Freeze the early layers.** They hold general features (edges, textures), so you keep them as they are.
+2. **Replace and train the last layers** on your own data.
+
+**Benefit:** needs less data and less time than training from scratch.
+
+---
+
+### Quick revision table
+
+| Model        | Year | Key idea                          | Problem solved                   |
+| ------------ | ---- | --------------------------------- | -------------------------------- |
+| LeNet        | 1998 | Small conv-pool-FC net            | Proved CNNs work                 |
+| AlexNet      | 2012 | ReLU, Dropout, GPU                | Deep nets at large scale         |
+| VGG          | 2014 | Many 3×3 filters, simple and deep | Going deeper cleanly             |
+| ResNet       | 2015 | Skip connection (F(x) + x)        | Vanishing gradients in deep nets |
+| EfficientNet | 2019 | Compound scaling                  | Wasteful scaling                 |
+
+---
+
+### Memory tricks
+
+- **Order:** **L**ove **A**ll **V**ery **R**eal **E**xams (LeNet, AlexNet, VGG, ResNet, EfficientNet)
+- **AlexNet = “RDG”:** **R**eLU, **D**ropout, **G**PU
+- **VGG = small filters, big depth**
+- **ResNet = skip path.** Think of it as a shortcut so gradients don’t get lost.
+- **EfficientNet = scale everything together**
 
 **Write this in the paper:**  
 *LeNet proved CNNs on digits. AlexNet introduced ReLU, dropout and GPU training and started the deep-learning boom. VGG showed depth with stacked 3×3 filters. ResNet’s skip connections solved vanishing gradients so very deep nets could train. EfficientNet’s compound scaling balances depth, width and resolution. Transfer learning reuses a pre-trained backbone and adapts the last layers to a new task.*
 
 ---
 
-## 22. Dropout and skip connections (two easy extra marks)
+## 30. Dropout and skip connections (two easy extra marks)
 
-**Dropout:** during training, randomly set some neurons to 0 (e.g. 30%). The net cannot rely on one “lucky” neuron, so it learns redundant, more general features. At test time dropout is off. Analogy: a team where random members sit out, so everyone must know the play.
+**Dropout — purpose:** stop the network from memorising (overfitting).
 
-**Skip connections appear twice — say how they differ:**
+**In simple words:** while training, randomly switch off some neurons (say 30%). They output 0 for that step. The network cannot depend on one “star” neuron. Everyone must learn. When you *test*, dropout is **off** — all neurons work.
 
-- **ResNet:** skip is for **training depth** (gradient flow, learn residuals).
-- **U-Net:** skip is for **detail**. Encoder compressed the image; skip brings the original edges back to the decoder so boundaries stay sharp.
+Think of a team: random players sit out in practice, so the whole team knows the game.
+
+**Skip connections — purpose:** a shortcut. The input is copied forward and added later: **output = F(x) + x**.
+
+They appear in **two** models. The shortcut is the same idea, the *reason* is different:
+
+| | **ResNet skip** | **U-Net skip** |
+|--|-----------------|----------------|
+| Why | so a **very deep** net can still train | so **edges / small details** are not lost |
+| What it helps | **gradient** can flow back (vanishing gradient) | decoder gets the original sharp pixels from the encoder |
 
 **Write this in the paper:**  
-*Dropout is regularisation: random neurons are ignored during training to reduce overfitting. ResNet skips help gradient flow. U-Net skips copy high-resolution features to the decoder for precise masks.*
+*Dropout is regularisation: random neurons are set to zero during training so the model does not overfit. At test time dropout is off. Skip connections copy input forward. In ResNet they help gradient flow so deep nets can train. In U-Net they copy high-resolution features to the decoder for sharp masks.*
 
 ---
 
-## 23. Four vision tasks (do not mix them)
+### 3B — Detect and segment (must)
 
-| Task | Output | Example |
-|------|--------|---------|
-| **Classification** | one label for the **whole** image | “this photo is a cat” |
-| **Object detection** | **box + class** for each object | “cat here, dog there” |
-| **Semantic segmentation** | a class for **every pixel**; two cars are the same label | road / car / sky map |
+## 31. Four vision tasks (do not mix them)
+
+Same photo. Four different jobs. Do not mix the names.
+
+| Task | What the computer must say | Example |
+|------|----------------------------|---------|
+| **Classification** | one label for the **whole** photo | “this is a cat” |
+| **Object detection** | **box + name** for each object | “cat here, dog there” |
+| **Semantic segmentation** | a name for **every pixel**; two cars get the **same** label | road / car / sky map |
 | **Instance segmentation** | every object separately, even two cars | car-1 mask, car-2 mask |
 
-Image **generation** (GAN / diffusion) is a fifth family: make a **new** image, not a label.
+**Generation** (GAN / diffusion): **GANs** and **Diffusion Models** do **not** identify or label an existing image. Instead, they **learn patterns from many training images and generate a brand-new image** that looks realistic. GANs and Diffusion Models are popular image generation techniques.
+
+**Write this in the paper:**  
+*Classification gives one label for the image. Detection gives a box and class for each object. Semantic segmentation labels every pixel (same class = same colour). Instance segmentation separates each object. Generation creates a new image.*
 
 ---
 
-## 24. Object detection: R-CNN family, YOLO, SSD
+## 32. Object detection: R-CNN family, YOLO, SSD
 
-Detection must answer **what** and **where**.
+**Purpose:** find **what** is in the image and **where** (a box).
 
-### R-CNN (2014) — Region-based CNN
+**In simple words:** classification says “there is a dog”. Detection draws a rectangle around each dog.
 
-1. Propose thousands of possible boxes (regions)
-2. Run a CNN **on each region**
-3. Classify + refine the box
+### R-CNN (2014)
 
-Very accurate. **Very slow** (thousands of CNN runs per image). Fine for offline medical reading. Not for a car that must react now.
+Name = Region-based CNN.
 
-**Faster R-CNN** adds a **Region Proposal Network (RPN)** so proposals are learned, not a slow external step. Still two-stage (propose, then classify).
+1. Guess many possible boxes (regions).
+2. Run a CNN **on each box**.
+3. Say the class and fix the box.
+
+**Plus:** accurate. **Minus:** very slow (thousands of CNN runs). Fine for a doctor looking at a scan later. Bad for a car that must decide now.
+
+**Faster R-CNN:** a small net called **RPN (Region Proposal Network)** learns the boxes. Still two stages: first propose, then classify.
 
 ### YOLO (2016) — You Only Look Once
 
-Treat detection as **one regression**: one forward pass predicts all boxes and classes together. **Real-time**. Weaker on **tiny** objects (a far pedestrian can be missed). Choose YOLO for driving, sports, CCTV live view.
+Looks at the **whole** image **once**. In that one pass it predicts all boxes and all classes together.
+
+**Plus:** real-time (fast). **Minus:** weak on **tiny** objects (a far person can be missed). Use for driving, sports, live CCTV.
 
 ### SSD (2016) — Single Shot MultiBox Detector
 
-Also one shot, but predicts from **several feature maps at different scales**, so small and large objects are handled together. Balance of speed and accuracy. Common on mobile.
+Also one shot (not two stages). It looks at **several feature maps of different sizes**, so it can catch **small and large** objects. Middle of speed and accuracy. Common on phones.
 
-**How to choose (they love this):**
+**They love this choice question:**
 
-- Medical / tumour: **accuracy first** → R-CNN family  
-- Self-driving / live camera: **speed first** → YOLO (or SSD)
+- Medical / tumour → need **accuracy** → R-CNN family  
+- Self-driving / live camera → need **speed** → YOLO (or SSD)
 
 **Write this in the paper:**  
-*R-CNN classifies region proposals with a CNN: accurate but slow. YOLO predicts boxes and classes in one pass: fast, weaker on small objects. SSD is a single-shot detector that uses multi-scale feature maps. Choose R-CNN when accuracy matters more than speed, YOLO/SSD when real-time is required.*
+*R-CNN classifies region proposals with a CNN: accurate but slow. Faster R-CNN adds an RPN to propose regions. YOLO predicts boxes and classes in one forward pass: real-time, weaker on small objects. SSD is also single-shot and uses multi-scale feature maps. Choose R-CNN when accuracy matters more than speed; YOLO/SSD when real-time is required.*
 
 ---
 
-## 25. Semantic segmentation: FCN and U-Net
+## 33. Semantic segmentation: FCN and U-Net
 
-Classification says “cat”. Segmentation says **which pixels are the cat**.
+**Purpose:** give **every pixel** a class. Not one label for the photo. Not a box. The actual shape.
 
-Old CNNs ended with fully connected layers, which **flatten** and destroy “where”. **FCN (Fully Convolutional Network)** replaces those with convolutions so the output is a **map** the size of the image. First big idea. Limit: masks are **coarse**, boundaries fuzzy.
+**In simple words:** classification = “cat”. Segmentation = colour every cat pixel.
 
-**U-Net (2015)** is the one you must draw in your head:
+### FCN (Fully Convolutional Network)
+
+Old CNNs ended with fully connected layers. Those layers **flatten** the picture, so “where” is lost.
+
+FCN **removes** those dense layers and uses **only convolutions**. Output is a **map** the same idea as the image: each pixel has a class.
+
+**Plus:** first big idea for pixel labels. **Minus:** the mask is **rough**. Edges of the tumour look fuzzy.
+
+### U-Net (2015)
+
+Draw this in your head:
 
 ```
-Encoder (down):  image → smaller maps, rich meaning   ("what")
-Decoder (up):    small maps → full size again         ("where")
-Skip connections: copy encoder details into decoder   (sharp edges)
+Encoder (down):  picture gets smaller → understands WHAT it is
+Decoder (up):    picture grows back   → understands WHERE it is
+Skip connections: copy encoder details into decoder → sharp edges
 ```
 
-Encoder compresses for **context**. Decoder expands for **location**. Skips bring back edges lost during downsampling. That is why U-Net dominates **medical** images (tumour, cell, organ): you need millimetre boundaries, not a rough box.
+- Encoder = compress for **meaning** (this looks like tissue).
+- Decoder = expand for **place** (these pixels).
+- Skips = bring back the original edges that compression lost.
+
+That is why U-Net is used in **medical** images: you need the exact boundary, not a box.
 
 **Write this in the paper:**  
-*Semantic segmentation labels every pixel. FCN outputs a dense map by using only convolutions, but boundaries can be coarse. U-Net uses an encoder-decoder with skip connections so context and fine detail are combined, which is why it is standard in medical imaging.*
+*Semantic segmentation labels every pixel. FCN replaces fully connected layers with convolutions so the output is a dense pixel map, but boundaries can be coarse. U-Net is an encoder-decoder with skip connections: the encoder captures context, the decoder recovers location, skips bring fine detail. This is why U-Net is standard in medical imaging.*
 
 ---
 
-## 26. Instance segmentation: Mask R-CNN
+## 34. Instance segmentation: Mask R-CNN
 
-Detection gives a **rectangle**. A tumour is not a rectangle. Overlapping people are not rectangles.
+**Purpose:** not only a box. The **exact shape** of **each** object, even if two objects overlap.
 
-**Mask R-CNN (2017)** = Faster R-CNN **plus** a small branch that predicts a **binary mask** per object.
+**In simple words:** a box around a tumour includes healthy tissue. A **mask** follows the tumour edge. Two people standing together: boxes overlap; masks can still separate them.
+
+**Mask R-CNN (2017)** = Faster R-CNN **+** one extra branch that draws a **black-and-white mask** for each object.
 
 Three outputs per object:
 
-1. Bounding box
-2. Class
-3. Pixel mask
+1. **Box** — where
+2. **Class** — what
+3. **Mask** — the exact pixels
 
-**RoI Align** (improved from RoI Pool) samples features without rounding error, so the mask sits on the object, not shifted by a few pixels.
+**RoI Align:** a careful way to cut features for each box. Older **RoI Pool** rounded numbers and the mask sat a bit **off**. RoI Align does not round, so the mask sits on the object.
 
-Why masks beat boxes in medicine: exact shape, area/volume, overlapping organs. Also used in driving (pedestrian silhouette) and crowd scenes.
+**Why masks beat boxes in medicine:** true shape, true area/volume, overlapping organs. Also used in driving and crowds.
 
 **Write this in the paper:**  
-*Mask R-CNN extends Faster R-CNN with a mask branch. After RPN proposals, RoI Align extracts aligned features, then the model outputs box, class and a pixel-level mask. Masks give precise shape, which bounding boxes cannot.*
+*Mask R-CNN extends Faster R-CNN with a mask branch. After RPN proposals, RoI Align extracts aligned features. For each object it outputs a box, a class and a pixel-level mask. Masks give precise shape, which bounding boxes cannot.*
 
 ---
 
-## 27. Video: CNN + LSTM (class extra — still in the question PDF)
+### 3C — Class extras (in notes + question PDF, not a named syllabus bullet)
 
-One image has no “waving”. A wave is a **sequence**.
+## 35. Video: CNN + LSTM (class extra — still in the question PDF)
 
-- **CNN** on each frame → *what* is in the picture (a hand)
-- **RNN/LSTM** across those feature vectors → *how it changes* (the wave)
+**Purpose:** understand **video**, not one photo. Video is photos **in order**.
 
-**RNN** remembers recent steps in a hidden state. On long videos it **forgets** (vanishing gradient).
+**In simple words:** one photo of a hand is not a “wave”. A wave is the hand moving **across frames**.
 
-**LSTM** adds **gates**:
+- **CNN** on each frame → **what** is in that picture (a hand, a ball).
+- **LSTM** on the sequence of those CNN results → **how it changes** (the wave, the throw).
 
-- **Input gate** — what new info to store  
-- **Forget gate** — what old info to drop  
-- **Output gate** — what to send forward
+**RNN** (simple sequence net): it has a small memory of recent steps. On a **long** video that memory fades. This is **vanishing gradient**.
 
-So LSTM keeps long-term context and handles videos of different length. Pipeline: CNN per frame → sequence of vectors → LSTM → action class (clap, throw, walk).
+**LSTM** (Long Short-Term Memory) is an RNN with **gates** so it can remember longer:
+
+- **Input gate** — what new information to keep  
+- **Forget gate** — what old information to throw  
+- **Output gate** — what to send to the next step
+
+LSTM can also handle short and long videos.
+
+**Pipeline:** CNN per frame → list of feature vectors → LSTM → action class (clap, throw, walk).
 
 **Write this in the paper:**  
-*CNNs extract spatial features from each frame but not time. LSTMs model the sequence with input, forget and output gates, which reduces vanishing gradients compared with vanilla RNNs. Together they recognise actions and gestures.*
+*A CNN sees what is in each frame (spatial features) but not time. An RNN models sequence but forgets long videos (vanishing gradient). LSTM uses input, forget and output gates to keep long-term memory. CNN + LSTM is used for action and gesture recognition.*
 
 ---
 
-## 28. Vision Transformer (ViT) and attention (class extra)
+## 36. Vision Transformer (ViT) and attention (class extra)
 
-CNN looks through a **small window**. To relate the top-left of a zebra to the bottom-right, you need many layers.
+**Purpose:** a CNN looks at a **small window**. A Vision Transformer looks at the **whole image at once** using **attention**.
 
-**Attention** (from NLP) compares every item with every other item:
+**In simple words:** CNN is a magnifying glass. To connect the zebra’s head to its tail you need many layers. Attention lets far parts **talk in one step**.
+
+**Attention** (came from language models). Three names:
 
 - **Query (Q)** — what I am looking for  
-- **Key (K)** — what each item is  
-- **Value (V)** — the content to mix in
+- **Key (K)** — what each piece is  
+- **Value (V)** — the information inside that piece
 
-Similarity of Q with K gives weights. Weighted sum of V is the output. Related distant pixels can talk in **one** step.
+Compare Q with K → get importance scores → mix the Values with those scores. Related pieces get high weight.
 
-**ViT:**
+**ViT steps:**
 
-1. Cut the image into **patches** (e.g. 16×16), flatten each patch, treat it like a **word token**
-2. Run a Transformer encoder (attention) on the sequence of patches
-3. A special **class token** summarises the image for classification
+1. Cut the image into **patches** (e.g. 16×16). Flatten each patch. Treat it like a **word**.
+2. Send this list of patches into a **Transformer** (attention).
+3. A special **class token** summarises the whole image for the final label (cat / dog).
 
-Patches keep local detail. Attention across patches gives **global** context. Needs a lot of data to beat CNNs. Hybrid CNN+Transformer models exist.
+Patches keep local detail. Attention across patches gives **global** view. ViT usually needs **a lot of data**. Some models mix CNN + Transformer.
 
 **Write this in the paper:**  
-*Attention uses Query, Key and Value to weight which parts of the input matter. ViT splits an image into patches, embeds them as tokens, and applies a transformer. This captures long-range relations that local CNN filters miss.*
+*Attention uses Query, Key and Value to decide which parts of the input matter and captures long-range relations. ViT splits an image into patches, treats them as tokens, and runs a transformer encoder. A class token is used for classification. This is how ViT sees global context that local CNN filters miss.*
 
 ---
 
-# STEP 4 — Generate new images (GANs + diffusion)
+# STEP 4 — GANs (generative models)
 
 Module 6, and “image generation” in Module 3.
 
 ---
 
-## 29. GAN — two networks in a fight
+## 37. GAN — two networks in a fight
 
-A classifier says “this is a 7”. A **generative** model **draws** a new 7 that never existed.
+**Purpose:** a **classifier** says “this is a 7”. A **GAN** **draws a new 7** that was never in the dataset.
 
-A **GAN** (Generative Adversarial Network, Goodfellow 2014) trains **two** nets with opposite jobs:
+GAN = Generative Adversarial Network (Goodfellow, 2014). **Two** networks with opposite jobs:
 
-| Network | Nickname | Input | Output |
-|---------|----------|--------|--------|
-| **Generator G** | forger / counterfeiter | random noise vector `z` | a fake image |
-| **Discriminator D** | police / inspector | an image (real or fake) | probability it is real (0 to 1) |
+| Network | Role | In | Out |
+|---------|------|----|-----|
+| **Generator G** | forger | random numbers `z` (noise) | a fake image |
+| **Discriminator D** | police | a real or fake image | a score: how real? (0 to 1) |
 
-G never copies a real photo directly. It only learns from D’s feedback. D sees real MNIST digits **and** G’s fakes.
+G does **not** copy a real photo. It only learns from D’s “fake / real” feedback. D sees real images **and** G’s fakes.
 
-Story over time:
+**How training goes:**
 
-- Round 1: G paints noise. D catches everything.  
-- Later: G learns “digits have strokes”. D looks harder.  
-- If it works: G’s images look real. D can only **guess** → output about **0.5**.
+1. First G makes noise. D catches every fake.
+2. G gets a little better. D must look harder.
+3. If it works: G’s pictures look real. D can only **guess** → score about **0.5**.
 
-After training we usually **throw D away and keep G**. G is the artist.
+After training we usually **keep G** and throw D away. G is the artist.
 
-**Minimax / adversarial / zero-sum:** D wants to maximise “I am right about real vs fake”. G wants to minimise that — it wants D to fail. One’s gain is the other’s loss. That is the **minimax objective**.
+**Minimax / adversarial / zero-sum (write these words):** D wants to be right. G wants D to be wrong. One’s win is the other’s loss. That fight is the **minimax objective**.
 
 **Write this in the paper:**  
-*A GAN has a generator that maps noise to images and a discriminator that scores real vs fake. They train adversarially with a minimax objective. At success, generated data matches real data and D outputs about 0.5. After training we keep the generator.*
+*A GAN has a generator that turns noise into images and a discriminator that scores real vs fake. They train as opponents with a minimax objective. At success, generated images match real data and D outputs about 0.5. After training we keep the generator.*
 
 ---
 
-## 30. Nash equilibrium, instability, mode collapse
+## 38. Nash equilibrium, instability, mode collapse
 
-This is not like training a classifier where loss calmly goes down. Here each net is chasing a **moving** target (the other net is also learning).
+**Purpose:** explain **why GAN training is hard**. This is not like a normal classifier where loss quietly goes down. Here **both** nets are learning, so each one is chasing a **moving** target.
 
-**Nash equilibrium:** a point where **neither** player can do better by changing **only themselves**. For a GAN that ideal point is: G’s distribution equals the real data, and D = ½ everywhere.
+**Nash equilibrium (the ideal end):** neither player can do better by changing **only themselves**. For a GAN that means: G’s images match real data, and D answers **0.5** for everything (pure guess).
 
-In practice gradients often **circle** that point instead of landing on it (like a penalty kick: if you always shoot left, the keeper learns left, so you switch, they switch, you spin).
+In real training, they often **circle** this point instead of landing on it. Like a penalty: if you always shoot left, the keeper learns left, so you switch, they switch, you spin.
 
-**Mode collapse:** G finds **one** image (or one digit) that fools D and repeats it. Every sample looks OK, but **variety is dead**. D looks at one image at a time, so the loss does not punish “you only draw 1s”.
+**Mode collapse:** G finds **one** picture (or one digit) that fools D and **repeats only that**. Each image looks fine, but **variety is gone**. D judges one image at a time, so the loss does not say “you only draw 1s”.
 
-**Instability:** losses jump, quality can get worse if you train longer, tiny setting changes break the run. **Do not trust GAN loss as a quality meter.** You look at a grid of samples.
+**Instability:** loss jumps up and down. More training can make pictures **worse**. Small setting changes can break the run. **Do not trust the loss number.** Look at a grid of generated images.
 
-Fixes you only need to *name* if asked: label smoothing, instance noise, different learning rates, minibatch statistics to punish missing variety.
+If asked for **fixes**, only names: label smoothing, instance noise, different learning rates for G and D, minibatch statistics (to punish missing variety).
 
 **Write this in the paper:**  
-*GAN training is a game, so the Nash equilibrium (G matches data, D=0.5) is hard to reach and training can oscillate. Mode collapse is when G produces only a few kinds of samples. Instability means losses and image quality swing. Loss value alone does not measure sample quality.*
+*GAN training is a game, so the Nash equilibrium (G matches real data, D = 0.5) is hard to reach and training can oscillate. Mode collapse is when G produces only a few kinds of samples. Instability means losses and image quality swing. Loss value alone does not measure sample quality.*
 
 ---
 
-## 31. DCGAN and Conditional GAN
+## 39. DCGAN and Conditional GAN
 
-**DCGAN (Deep Convolutional GAN):** replace dense layers with **convolutions**.
+Same fight as section 37. Only the **network design** (and extra label) changes.
 
-- D uses strided conv to shrink the image (like a CNN classifier)
-- G uses **transposed convolution** to grow noise into a full image
-- Often with BatchNorm
+**DCGAN (Deep Convolutional GAN):** G and D are made of **convolutions**, not only fully connected layers.
 
-Result: sharper, more structured pictures (digits with clean background instead of grey speckle). Same game as Class 1, better architecture.
+- **D** uses **strided conv** to shrink the image (like a CNN classifier).
+- **G** uses **transposed convolution** to grow noise into a full image.
+- Often uses **BatchNorm** to keep training calmer.
 
-**Conditional GAN (cGAN):** both G and D also receive a **label** `y` (for example digit class 7 as a one-hot vector). Then you can **ask** “draw a 7” instead of hoping a 7 appears. The training game is unchanged; extra input is the class.
+Result: cleaner pictures (sharp digits, not grey speckle). Same game, better architecture.
+
+**Conditional GAN (cGAN):** both G and D also get a **label** `y` (for example “digit 7”). Then you can **ask** “draw a 7” instead of hoping a 7 appears. The fight is the same. Extra input is the class.
 
 **Write this in the paper:**  
-*DCGAN uses convolutional G and D (transposed conv in G) for more stable, sharper images. A conditional GAN feeds a class label to both networks so generation can be controlled.*
+*DCGAN uses convolutional networks for G and D. D uses strided convolutions; G uses transposed convolutions. This gives sharper images. A conditional GAN also feeds a class label to both networks so you can control what is generated.*
 
 ---
 
-## 32. Diffusion models (syllabus says “overview” — not in your slides)
+## 40. Diffusion models (syllabus says “overview” — not in your slides)
 
-Second family of image generators.
+**Purpose:** another way to **make images**. Syllabus wants a short compare with GAN. Not a full method.
 
-Start from **pure noise**. Learn to **remove a little noise**, many times, until a clean image appears. No forger-vs-police fight.
+**In simple words:** start from **TV static** (pure noise). Learn to **remove a little noise**, many times, until a clear picture appears. No forger vs police.
 
-| | GAN | Diffusion |
-|---|-----|-----------|
-| How | two nets compete | denoise step by step |
+| | **GAN** | **Diffusion** |
+|--|---------|----------------|
+| How | two nets fight | slowly denoise |
 | Stability | often unstable, mode collapse | usually more stable |
-| Control | cGAN uses a label | can also follow text |
-| Today | still taught | what most modern “AI image” tools use |
+| Control | cGAN uses a class label | can also follow text |
+| Today | still taught | what most “AI image” apps use |
 
 Four or five lines in the paper is enough unless the whole question is generation.
 
 **Write this in the paper:**  
-*Diffusion models generate images by iteratively denoising random noise. They are generally more stable than GANs and currently dominate high-quality image generation, while GANs use an adversarial generator-discriminator game.*
+*Diffusion models generate images by starting from noise and removing noise step by step. They are generally more stable than GANs. GANs use an adversarial generator-discriminator game. Diffusion is now common for high-quality image generation.*
 
 ---
 
-## 33. Multimodal AI (in the subject name, almost no lecture)
+## 41. Multimodal AI (in the subject name, almost no lecture)
 
-**Unimodal:** only images, or only text.  
-**Multimodal:** **more than one type of data together** — usually image + text.
+**Purpose:** one model that understands **more than one type of data** — usually **image + text**.
 
-**CLIP**-style idea: train so that a photo and its caption land **near each other** in one shared space, and a wrong caption lands far away. Then you can:
+**Unimodal** = only pictures, or only words.  
+**Multimodal** = pictures **and** words together.
 
-- search images by typing words
-- do classification without a fixed list of classes (“this is a MRI of a liver”)
-- feed into captioning / vision-language models
+**CLIP idea (simple):** train so a photo and its **correct caption** sit **near** each other in one shared number space. A wrong caption sits far. Then you can:
 
-A CNN classifier maps image → class id. A multimodal model maps **image and text into the same space**.
+- search photos by typing words  
+- classify without a fixed list of class names  
+- go toward captioning / vision-language models
 
-If the paper never asks this, you lose nothing. If one short question appears, the paragraph above is enough.
+A normal CNN: image → class id.  
+A multimodal model: **image and text into the same space**.
+
+If the paper never asks this, you lose nothing. If one short question appears, the paragraph below is enough.
 
 **Write this in the paper:**  
-*Multimodal AI jointly understands different data types, typically vision and language. Models like CLIP embed images and text in a shared space so photos can be searched or classified with natural language.*
+*Multimodal AI understands more than one data type, typically vision and language. Models like CLIP put images and text in a shared space so you can search or classify images with natural language.*
+
+---
+
+# STEP 5 — Questions, then project
+
+Practice files (same as [STUDY-ORDER.md](./STUDY-ORDER.md)):
+
+- [01-Week1-Questions.pdf](./05-Practice-and-Project/01-Week1-Questions.pdf) — after Week 1
+- [02-Week2-and-Week3-Questions.pdf](./05-Practice-and-Project/02-Week2-and-Week3-Questions.pdf) — after Week 2–3
+- [03-CV-Project-Assignment.pdf](./05-Practice-and-Project/03-CV-Project-Assignment.pdf) — after Week 3 (and Week 4 if the project needs generation)
 
 ---
 
@@ -1110,7 +1541,9 @@ If the paper never asks this, you lose nothing. If one short question appears, t
 | RGB vs HSV | RGB for screens; HSV for color detection under light change |
 | Global vs adaptive vs Otsu | one T vs local T vs auto T by variance |
 | Opening vs closing | erode→dilate (noise) vs dilate→erode (holes) |
-| Harris vs SIFT vs ORB | corners / robust slow / fast cheap |
+| Harris vs SIFT vs SURF vs ORB | corners / strong slow / faster SIFT-like / fastest cheap |
+| Lucas–Kanade vs Horn–Schunck | local window vs global smoothness |
+| Dense vs fully connected | local shared filters vs every-to-every, layout lost |
 | Haar vs HOG face | fast frontal vs slower, better lighting |
 | Classification vs detection vs segmentation | label / box / every pixel |
 | Semantic vs instance | all cars same vs each car separate |
@@ -1130,12 +1563,12 @@ If the paper never asks this, you lose nothing. If one short question appears, t
 |---------|-------------------|
 | 1 | Sections 1–7 (pixels to edges) |
 | 2 | Sections 8–12 (histogram to contours) then Week 1 questions |
-| 3 | Sections 13–17 (challenges, features, flow) |
-| 4 | Sections 18–20 (ML, face, CNN words) |
-| 5 | Sections 21–22 (lineage) — write it from memory |
-| 6 | Sections 23–26 (tasks, detect, segment) |
-| 7 | Sections 27–28 if time (video, ViT) |
-| 8 | Sections 29–33 (GAN + extras) then Week 2–3 questions |
+| 3 | Sections 13–20c (tracking → SIFT/SURF/HOG → stereo/epipolar → flow → Kalman) |
+| 4 | Sections 21–28 (challenges, features, matching, ML, face, CNN words) |
+| 5 | Sections 29–30 (lineage) — write it from memory |
+| 6 | Sections 31–34 (tasks, detect, segment) |
+| 7 | Sections 35–36 if time (video, ViT) |
+| 8 | Sections 37–41 (GAN + extras) then Week 2–3 questions |
 
 After each sitting, write 8 lines **without looking**. That is the exam skill.
 
