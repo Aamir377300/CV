@@ -3,6 +3,9 @@
 Simple self-study guide for mid-term.  
 Focus: **only** this subject from [Mid-Term-Sem5_.pdf](./Syllabus/Mid-Term-Sem5_.pdf).
 
+**Teaching notes (read this to understand):** [THEORY-NOTES.md](./THEORY-NOTES.md)  
+This file is the **order**. That file is the **explanation**. Click any blue name below to open the original PDF/notebook.
+
 **Click any blue file name to open that PDF, notebook, or slide.**
 
 The paper is **theory**. So you study in this order every time:
