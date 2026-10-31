@@ -20,7 +20,7 @@ Imagine a chessboard. Each square is one **pixel** (picture element). Each pixel
 
 ---
 
-### 2. What is the difference between grayscale and color image representation?
+### 2. What is the difference grayscale and color image representation?
 
 A **grayscale** image stores **one number per pixel**, usually 0 to 255. So it is a **2D matrix**: height × width. 0 is black, 255 is white, 128 is gray.
 
@@ -42,8 +42,8 @@ A **color** pixel needs **three** numbers: Red, Green, Blue. So a color image is
 
 It returns a tuple of sizes.
 
-- Grayscale: **`(height, width)`**
-- Color: **`(height, width, channels)`**, for example `(480, 640, 3)`
+- Grayscale: `**(height, width)**`
+- Color: `**(height, width, channels)**`, for example `(480, 640, 3)`
 
 Height is rows, width is columns. That matches `image[y, x]`.
 
@@ -176,7 +176,9 @@ G turns that noise into an image. Different `z` should become different pictures
 
 D outputs a **score from 0 to 1**: how real the image looks.
 
-Near **1** = “this looks real”. Near **0** = “this looks fake”. When G is good, D can only **guess** and the score sits around **0.5**.
+- **1.0** = “I’m sure it’s real”
+- **0.0** = “I’m sure it’s fake”
+- **0.5** = “I have no idea, it’s 50-50”
 
 ---
 
@@ -320,11 +322,11 @@ This is one of the techniques used to survive the four core CV challenges.
 
 ### 30. Explain why normalization of MNIST images is important for GAN training.
 
-Raw MNIST pixels are **0–255**. The Generator often ends with **tanh**, so fakes live around **−1 to 1** (or sigmoid, 0 to 1).
+**MNIST images** have pixel values from **0 to 255**. However, the **Generator (G)** usually produces images with pixel values in the range **−1 to 1** (using **tanh**) or **0 to 1** (using **sigmoid**).
 
-If real images stay 0–255 and fakes are −1 to 1, D can cheat by looking at the **scale**, not at “is this a real digit?”. Training also becomes unstable.
+If the **real images** an d **generated images** have **different value ranges**, the **Discriminator (D)** can easily tell them apart **just by checking the pixel values**, without looking at whether the digit actually looks real. This makes GAN training **unfair and unstable**.
 
-**Normalize** reals to the **same range** as G’s output (usually [−1, 1] or [0, 1]). Then D must judge the **content**.
+Therefore, we **normalize** the real images so that they have the **same range** as the Generator's output. Now the Discriminator must compare the **actual image content**, not just the pixel scale.
 
 ---
 
@@ -549,7 +551,7 @@ Each architecture was built to **fix a problem** from the one before it. If you 
 
 **VGG (2014).** 16 or 19 layers, simple design: stack many **3×3** filters. Two 3×3 cover about the same area as one 5×5, with fewer parameters and more ReLUs. Problem solved: go deeper **without a messy design**. Limitation: still very heavy.
 
-*(If they also want the next names: ResNet = skip `F(x)+x` so 100+ layers train. EfficientNet = compound scaling.)*
+*(If they also want the next names: ResNet = skip* `F(x)+x` *so 100+ layers train. EfficientNet = compound scaling.)*
 
 **Paper line:** *LeNet proved CNNs on digits. AlexNet introduced ReLU, dropout and GPU training and started the deep-learning boom. VGG showed depth with stacked 3×3 filters.*
 
@@ -779,7 +781,7 @@ This is adversarial / zero-sum: one’s win is the other’s loss.
 D^*(x) = \frac{p_{data}(x)}{p_{data}(x) + p_G(x)}
 \]
 
-If G already matches real data (`p_G = p_data`), then **D* = 1/2**. That matches the simple story: D can only guess, score about 0.5.
+If G already matches real data (`p_G = p_data`), then *D = 1/2**. That matches the simple story: D can only guess, score about 0.5.
 
 **Nash equilibrium.** Neither player can do better by changing **only themselves**. For a GAN that means: G’s images match real data, and D answers **0.5** for everything. In real training they often **circle** this point instead of landing on it.
 
