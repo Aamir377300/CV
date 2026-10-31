@@ -147,23 +147,6 @@ It provides **thousands of ready-made functions**, so you don't have to write im
 
 ---
 
-# What is the use of OpenCV?
-
-OpenCV is used whenever you want a computer to **work with images or videos**.
-
-### Common Uses
-
-- Read and display an image
-- Capture video from a webcam
-- Resize, crop, or rotate images
-- Convert a color image to grayscale
-- Detect edges, corners, and shapes
-- Detect faces, eyes, or objects
-- Track moving objects in a video
-- Preprocess images before giving them to a deep learning model
-
----
-
 # What does OpenCV do?
 
 Think of **OpenCV as a toolbox for images and videos**.
@@ -208,11 +191,11 @@ Same three numbers, different order. If you display an OpenCV image in Matplotli
 
 **HSV** splits color the way humans talk about it:
 
-| Letter | Meaning | Think of it as |
-|--------|---------|----------------|
-| **H** Hue | Which color family | the angle on a color wheel (0° red, 120° green, 240° blue) |
-| **S** Saturation | How pure / washed | 0% = gray, 100% = vivid |
-| **V** Value | How bright | 0% = black, 100% = bright |
+| Letter           | Meaning                  | Think of it as                                             |
+| ---------------- | ------------------------ | ---------------------------------------------------------- |
+| **H** Hue        | Which color family       | the angle on a color wheel (0° red, 120° green, 240° blue) |
+| **S** Saturation | How pure / washed        | 0% = gray, 100% = vivid                                    |
+| **V** Value      | How bright (Intensity)n. | 0% = black, 100% = bright                                  |
 
 ## Why do we need HSV?
 
@@ -576,7 +559,7 @@ Applications
 
 ## 12. Contours and shapes
 
-After thresholding, a white blob has a **boundary**. That boundary curve is a **contour**.
+After thresholding, a white blob has a **boundary**. That boundary curve is a **contour**. (A **contour** is the **outline (boundary)** of an object in an image.)
 
 From a contour you can compute:
 
@@ -1089,6 +1072,8 @@ A normal neural network (fully connected) has two problems with images:
 
 **Input → Conv → ReLU → Pool → Conv → ReLU → Pool → Flatten → Fully Connected → Class scores**
 
+**mnemoics: CRP twice and FFC(once)**
+
 - **Early layers** learn simple things: edges, blobs.
 - **Deeper layers** learn bigger things: object parts, then whole objects.
 
@@ -1264,13 +1249,13 @@ Same photo. Four different jobs. Do not mix the names.
 
 **In simple words:** classification says “there is a dog”. Detection draws a rectangle around each dog.
 
-### R-CNN (2014)
+### R-CNN (2014) - two stage
 
 Name = Region-based CNN.
 
-1. Guess many possible boxes (regions).
-2. Run a CNN **on each box**.
-3. Say the class and fix the box.
+1. **Guess regions.** First, propose many possible boxes where an object might be (around 2000 per image).
+2. **Run a CNN on each box.** Crop each box and pass it through a CNN separately to extract its features.
+3. **Classify and fix the box.** Decide what the object is (cat, dog, etc.) and adjust the box so it fits the object better.
 
 **Plus:** accurate. **Minus:** very slow (thousands of CNN runs). Fine for a doctor looking at a scan later. Bad for a car that must decide now.
 
@@ -1284,7 +1269,7 @@ Looks at the **whole** image **once**. In that one pass it predicts all boxes an
 
 ### SSD (2016) — Single Shot MultiBox Detector
 
-Also one shot (not two stages). It looks at **several feature maps of different sizes**, so it can catch **small and large** objects. Middle of speed and accuracy. Common on phones.
+SSD is an object detector that works in one shot, which means it is a single-stage method and not a two-stage one like R-CNN. It looks at the whole image once and predicts the objects and their boxes together, so there is no separate step for guessing regions first. To handle objects of different sizes, it makes predictions from several feature maps of different sizes. The larger maps keep more detail and help catch small objects, while the smaller, deeper maps see the big picture and help catch large objects. In terms of performance, SSD sits in the middle: it is faster than R-CNN-type detectors but usually a little less accurate than the slowest two-stage models. Because it is light and fast enough, it is commonly used on phones and other small devices.
 
 **They love this choice question:**
 
@@ -1306,7 +1291,7 @@ Also one shot (not two stages). It looks at **several feature maps of different 
 
 Old CNNs ended with fully connected layers. Those layers **flatten** the picture, so “where” is lost.
 
-FCN **removes** those dense layers and uses **only convolutions**. Output is a **map** the same idea as the image: each pixel has a class.
+FCN **removes the dense layers** and uses **only convolution layers**. Because convolutions keep the spatial layout, the output is a **map shaped like the image**, where each pixel gets a class label.
 
 **Plus:** first big idea for pixel labels. **Minus:** the mask is **rough**. Edges of the tumour look fuzzy.
 
@@ -1333,24 +1318,35 @@ That is why U-Net is used in **medical** images: you need the exact boundary, no
 
 ## 34. Instance segmentation: Mask R-CNN
 
-**Purpose:** not only a box. The **exact shape** of **each** object, even if two objects overlap.
+### Start with the problem
 
-**In simple words:** a box around a tumour includes healthy tissue. A **mask** follows the tumour edge. Two people standing together: boxes overlap; masks can still separate them.
+A bounding box only says “the object is somewhere in this rectangle.” But a rectangle also includes background. A tumour box includes healthy tissue. Two people standing close have overlapping boxes. So we need something more exact: the **real shape** of the object. That is what a **mask** gives.
 
-**Mask R-CNN (2017)** = Faster R-CNN **+** one extra branch that draws a **black-and-white mask** for each object.
+### How Mask R-CNN works, in order
 
-Three outputs per object:
+**Step 1: Start with Faster R-CNN.**  
+Faster R-CNN already finds objects. First, a small network called the **RPN (Region Proposal Network)** suggests boxes where objects might be. These suggestions are called **proposals**.
 
-1. **Box** — where
-2. **Class** — what
-3. **Mask** — the exact pixels
+**Step 2: Cut out features for each proposal using RoI Align.**  
+For each proposal, the network takes that part of the feature map. **RoI Align** does this cutting carefully, without rounding the coordinates, so the cut-out lines up exactly with the object. (The older RoI Pool rounded the numbers, so the mask sat slightly off.)
 
-**RoI Align:** a careful way to cut features for each box. Older **RoI Pool** rounded numbers and the mask sat a bit **off**. RoI Align does not round, so the mask sits on the object.
+**Step 3: Predict three things for each object.**
 
-**Why masks beat boxes in medicine:** true shape, true area/volume, overlapping organs. Also used in driving and crowds.
+- **Box:** where it is
+- **Class:** what it is
+- **Mask:** which exact pixels belong to it
 
-**Write this in the paper:**  
-*Mask R-CNN extends Faster R-CNN with a mask branch. After RPN proposals, RoI Align extracts aligned features. For each object it outputs a box, a class and a pixel-level mask. Masks give precise shape, which bounding boxes cannot.*
+The **mask branch** is the new part. It is the extra branch added on top of Faster R-CNN, and it draws a black-and-white mask for each object.
+
+### Result
+
+Precise shape for every object, even overlapping ones, which boxes cannot give.
+
+---
+
+### Exam-style version (direct)
+
+Mask R-CNN extends Faster R-CNN by adding a mask branch. The RPN first proposes regions, and RoI Align then extracts aligned features for each one without rounding. For every object, the network outputs a bounding box, a class label and a pixel-level mask. The mask gives the precise shape of the object, which a bounding box cannot provide.
 
 ---
 
@@ -1417,48 +1413,95 @@ Module 6, and “image generation” in Module 3.
 
 ## 37. GAN — two networks in a fight
 
-**Purpose:** a **classifier** says “this is a 7”. A **GAN** **draws a new 7** that was never in the dataset.
+### Start with the purpose
 
-GAN = Generative Adversarial Network (Goodfellow, 2014). **Two** networks with opposite jobs:
+A normal **classifier** looks at an image and says “this is a 7.” A **GAN** does the opposite job: it **draws a brand-new 7** that was never in the dataset. That is why it is called a **generative** model (it generates new data).
 
-| Network | Role | In | Out |
-|---------|------|----|-----|
-| **Generator G** | forger | random numbers `z` (noise) | a fake image |
-| **Discriminator D** | police | a real or fake image | a score: how real? (0 to 1) |
+**GAN = Generative Adversarial Network** (Ian Goodfellow, 2014).
 
-G does **not** copy a real photo. It only learns from D’s “fake / real” feedback. D sees real images **and** G’s fakes.
+---
 
-**How training goes:**
+### The idea: a forger and the police
 
-1. First G makes noise. D catches every fake.
-2. G gets a little better. D must look harder.
-3. If it works: G’s pictures look real. D can only **guess** → score about **0.5**.
+A GAN has **two networks with opposite jobs**. Think of a fake-money maker and a police officer.
 
-After training we usually **keep G** and throw D away. G is the artist.
+| Network               | Role       | Input                                | Output                                       |
+| --------------------- | ---------- | ------------------------------------ | -------------------------------------------- |
+| **Generator (G)**     | The forger | Random numbers (noise, called **z**) | A fake image                                 |
+| **Discriminator (D)** | The police | A real or fake image                 | A score from 0 to 1 (how real does it look?) |
 
-**Minimax / adversarial / zero-sum (write these words):** D wants to be right. G wants D to be wrong. One’s win is the other’s loss. That fight is the **minimax objective**.
+**Important:** G never sees or copies real photos. It learns only from D’s feedback (“fake” or “real”). D, on the other hand, sees both real images and G’s fakes.
 
-**Write this in the paper:**  
-*A GAN has a generator that turns noise into images and a discriminator that scores real vs fake. They train as opponents with a minimax objective. At success, generated images match real data and D outputs about 0.5. After training we keep the generator.*
+---
+
+### How training goes, step by step
+
+1. **Start:** G knows nothing, so it makes noise. D easily catches every fake.
+2. **Middle:** G uses D’s feedback and gets a little better. Now D has to look more carefully, so D also improves.
+3. **Success:** G’s pictures look real. D cannot tell the difference and can only guess, so its score is about **0.5** (50-50).
+
+**After training:** we keep **G** (the artist) and throw away **D** (it was only a teacher).
+
+---
+
+### The three words you must write: adversarial, zero-sum, minimax
+
+- **Adversarial:** the two networks are opponents.
+- **Zero-sum:** D wants to be right, G wants D to be wrong. One’s win is the other’s loss.
+- **Minimax:** this fight is the objective of the GAN. D tries to maximise its correctness while G tries to minimise it.
+
+---
+
+### Memory tricks
+
+- **G = Generator = Gets noise, Gives fake.**
+- **D = Discriminator = Decides real or fake.**
+- **Forger vs Police.**
+- **Success = D score about 0.5.**
+- **Keep G, drop D.**
+
+### Exam-style version (direct)
+
+A GAN has a generator that turns random noise into images and a discriminator that scores images as real or fake. The two networks train as opponents with a minimax objective: the generator tries to fool the discriminator, and the discriminator tries to catch the fakes. When training succeeds, the generated images look like real data and the discriminator outputs about 0.5. After training, the generator is kept and the discriminator is discarded.
 
 ---
 
 ## 38. Nash equilibrium, instability, mode collapse
 
-**Purpose:** explain **why GAN training is hard**. This is not like a normal classifier where loss quietly goes down. Here **both** nets are learning, so each one is chasing a **moving** target.
+### Nash Equilibrium
 
-**Nash equilibrium (the ideal end):** neither player can do better by changing **only themselves**. For a GAN that means: G’s images match real data, and D answers **0.5** for everything (pure guess).
+A **Nash Equilibrium** is the ideal point where **both the Generator (G) and Discriminator (D) are as good as they can be**. The Generator creates images that look real, and the Discriminator **cannot tell real from fake**, so it guesses **50% real, 50% fake (0.5 probability)**.
 
-In real training, they often **circle** this point instead of landing on it. Like a penalty: if you always shoot left, the keeper learns left, so you switch, they switch, you spin.
+---
 
-**Mode collapse:** G finds **one** picture (or one digit) that fools D and **repeats only that**. Each image looks fine, but **variety is gone**. D judges one image at a time, so the loss does not say “you only draw 1s”.
+### Why don't GANs reach it?
 
-**Instability:** loss jumps up and down. More training can make pictures **worse**. Small setting changes can break the run. **Do not trust the loss number.** Look at a grid of generated images.
+During training, **G and D keep improving against each other**. As soon as one improves, the other adapts. So instead of settling at one point, they often **keep chasing each other**, making training unstable.
 
-If asked for **fixes**, only names: label smoothing, instance noise, different learning rates for G and D, minibatch statistics (to punish missing variety).
+---
 
-**Write this in the paper:**  
-*GAN training is a game, so the Nash equilibrium (G matches real data, D = 0.5) is hard to reach and training can oscillate. Mode collapse is when G produces only a few kinds of samples. Instability means losses and image quality swing. Loss value alone does not measure sample quality.*
+### Mode Collapse
+
+Sometimes the Generator discovers **one type of fake image** that fools the Discriminator. Instead of creating many different images, it **keeps generating the same (or very similar) image repeatedly**. The images may look realistic, but **there is no variety**.
+
+---
+
+### Training Instability
+
+GAN training is often **unstable**. The loss may go up and down, and sometimes **training longer makes the generated images worse instead of better**. Therefore, **do not judge a GAN only by its loss value**. Instead, look at the **generated images** to see if their quality is improving.
+
+---
+
+### Common fixes (just remember the names)
+
+- **Label smoothing**
+- **Instance noise**
+- **Different learning rates** for Generator and Discriminator
+- **Minibatch statistics** (helps prevent mode collapse by encouraging image variety)
+
+**Write this in the paper:**
+
+GAN training is a game between the Generator (G) and the Discriminator (D). The ideal goal is a Nash Equilibrium, where G generates realistic images and D cannot distinguish real from fake (outputs 0.5). In practice, training often oscillates instead of converging. Mode collapse occurs when G repeatedly generates only a few types of images, reducing diversity. GAN training is also unstable, so loss values alone do not reflect image quality; the generated images should also be evaluated.
 
 ---
 
@@ -1466,24 +1509,43 @@ If asked for **fixes**, only names: label smoothing, instance noise, different l
 
 Same fight as section 37. Only the **network design** (and extra label) changes.
 
-**DCGAN (Deep Convolutional GAN):** G and D are made of **convolutions**, not only fully connected layers.
+A **DCGAN** is simply a **GAN that uses CNNs (convolutional layers)** instead of only fully connected layers. This helps it understand image patterns much better.
 
-- **D** uses **strided conv** to shrink the image (like a CNN classifier).
-- **G** uses **transposed convolution** to grow noise into a full image.
-- Often uses **BatchNorm** to keep training calmer.
+- The **Discriminator (D)** uses **strided convolutions** to gradually **reduce the image size** while extracting features and deciding whether the image is real or fake.
+- The **Generator (G)** uses **transposed convolutions** to gradually **convert random noise into a full-size image**.
+- **Batch Normalization (BatchNorm)** is often used to make training more stable.
 
-Result: cleaner pictures (sharp digits, not grey speckle). Same game, better architecture.
+**Result:** DCGAN generates **sharper and more realistic images** than a basic GAN.
 
-**Conditional GAN (cGAN):** both G and D also get a **label** `y` (for example “digit 7”). Then you can **ask** “draw a 7” instead of hoping a 7 appears. The fight is the same. Extra input is the class.
+## Conditional GAN (cGAN)
 
-**Write this in the paper:**  
-*DCGAN uses convolutional networks for G and D. D uses strided convolutions; G uses transposed convolutions. This gives sharper images. A conditional GAN also feeds a class label to both networks so you can control what is generated.*
+A **Conditional GAN (cGAN)** is a GAN where **both the Generator and the Discriminator are given a class label** (for example, **"7"**).
+
+This lets you **control what the Generator creates**.
+
+Example:
+
+- Label = **7** → Generate an image of the digit **7**.
+- Label = **Cat** → Generate a **cat**.
+
+Without a label, the Generator creates **any random image** it has learned.
+
+### Exam Tip
+
+> **DCGAN is a GAN that uses convolutional layers. The Discriminator uses strided convolutions to extract features, while the Generator uses transposed convolutions to generate images, producing sharper results. A Conditional GAN (cGAN) also receives a class label, allowing it to generate a specific type of image instead of a random one.**
 
 ---
 
 ## 40. Diffusion models (syllabus says “overview” — not in your slides)
 
-**Purpose:** another way to **make images**. Syllabus wants a short compare with GAN. Not a full method.
+### How does a Diffusion Model generate images?
+
+A diffusion model first **learns by destroying images**, and later **generates images by rebuilding them**.
+
+1. **Training (Forward Diffusion):** It starts with a real image and **adds small amounts of noise again and again** until the image becomes **pure random noise**. At each step, the model learns **how the noise was added**.
+2. **Generation (Reverse Diffusion):** To generate a new image, the model starts with **pure random noise**. It then **removes a little noise at a time**, gradually revealing meaningful patterns. After many steps, the random noise is transformed into a **new realistic image**.
+
+**Purpose:** another way to **make images**.
 
 **In simple words:** start from **TV static** (pure noise). Learn to **remove a little noise**, many times, until a clear picture appears. No forger vs police.
 
@@ -1528,9 +1590,10 @@ If the paper never asks this, you lose nothing. If one short question appears, t
 
 Practice files (same as [STUDY-ORDER.md](./STUDY-ORDER.md)):
 
-- [01-Week1-Questions.pdf](./05-Practice-and-Project/01-Week1-Questions.pdf) — after Week 1
-- [02-Week2-and-Week3-Questions.pdf](./05-Practice-and-Project/02-Week2-and-Week3-Questions.pdf) — after Week 2–3
-- [03-CV-Project-Assignment.pdf](./05-Practice-and-Project/03-CV-Project-Assignment.pdf) — after Week 3 (and Week 4 if the project needs generation)
+- [01-Week1-Questions.pdf](./05-Practice-and-Project/01-Week1-Questions.pdf) → answers: [ANSWERS-Week1-Questions.md](./05-Practice-and-Project/ANSWERS-Week1-Questions.md)
+- [02-Week2-and-Week3-Questions.pdf](./05-Practice-and-Project/02-Week2-and-Week3-Questions.pdf) → answers: [ANSWERS-Week2-and-Week3-Questions.md](./05-Practice-and-Project/ANSWERS-Week2-and-Week3-Questions.md)
+- [CV Mid Term Sample Questions.pdf](./CV%20Mid%20Term%20Sample%20Questions.pdf) → answers: [ANSWERS-CV-Mid-Term-Sample-Questions.md](./ANSWERS-CV-Mid-Term-Sample-Questions.md)
+- [03-CV-Project-Assignment.pdf](./05-Practice-and-Project/03-CV-Project-Assignment.pdf) — project brief only (not answered here)
 
 ---
 

@@ -6,6 +6,8 @@ Focus: **only** this subject from [Mid-Term-Sem5_.pdf](./Syllabus/Mid-Term-Sem5_
 **Teaching notes (read this to understand):** [THEORY-NOTES.md](./THEORY-NOTES.md)  
 This file is the **order**. That file is the **explanation**. Click any blue name below to open the original PDF/notebook.
 
+**Question answers (revise after you finish a step):** [Week 1](./05-Practice-and-Project/ANSWERS-Week1-Questions.md) · [Week 2–3](./05-Practice-and-Project/ANSWERS-Week2-and-Week3-Questions.md) · [Sample paper](./ANSWERS-CV-Mid-Term-Sample-Questions.md)
+
 **Click any blue file name to open that PDF, notebook, or slide.**
 
 The paper is **theory**. So you study in this order every time:
@@ -351,11 +353,14 @@ GAN = two nets fight. Diffusion = start from noise and slowly remove noise until
 
 # STEP 5 — Questions, then project
 
-| File | When |
-|------|------|
-| [01-Week1-Questions.pdf](./05-Practice-and-Project/01-Week1-Questions.pdf) | After Step 1 |
-| [02-Week2-and-Week3-Questions.pdf](./05-Practice-and-Project/02-Week2-and-Week3-Questions.pdf) | After Step 3 |
-| [03-CV-Project-Assignment.pdf](./05-Practice-and-Project/03-CV-Project-Assignment.pdf) | After Step 3 (and Step 4 if the idea needs generation) |
+Read the PDF, then revise from the matching answers file. Cover the answer. Say it in your own words.
+
+| Questions | Simple answers | When |
+|-----------|----------------|------|
+| [01-Week1-Questions.pdf](./05-Practice-and-Project/01-Week1-Questions.pdf) (same as v2) | [ANSWERS-Week1-Questions.md](./05-Practice-and-Project/ANSWERS-Week1-Questions.md) | After Step 1 |
+| [02-Week2-and-Week3-Questions.pdf](./05-Practice-and-Project/02-Week2-and-Week3-Questions.pdf) | [ANSWERS-Week2-and-Week3-Questions.md](./05-Practice-and-Project/ANSWERS-Week2-and-Week3-Questions.md) | After Step 3 |
+| [CV Mid Term Sample Questions.pdf](./CV%20Mid%20Term%20Sample%20Questions.pdf) | [ANSWERS-CV-Mid-Term-Sample-Questions.md](./ANSWERS-CV-Mid-Term-Sample-Questions.md) | After all steps, as a mock paper |
+| [03-CV-Project-Assignment.pdf](./05-Practice-and-Project/03-CV-Project-Assignment.pdf) | (project brief — not answered here) | After Step 3 (and Step 4 if the idea needs generation) |
 
 Project choices (pick one if you still need to submit):
 
